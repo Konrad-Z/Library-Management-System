@@ -17,6 +17,7 @@ string GetDatabasePassword() {
     return Password;
 }
 
+
 const string server = "tcp://127.0.0.1:3306";
 const string username = "root";
 const string password = GetDatabasePassword();
@@ -41,6 +42,8 @@ int main()
         // Set the schema (replace with your actual schema name)
         con->setSchema("librarysystem");
 
+        
+    
         // Clean up resources
         delete res;
         delete stmt;
@@ -57,10 +60,8 @@ int main()
     return 0;
 }
 
-
-/* Sample SQL
-
- // Execute the query
+/*
+// Execute the query
         stmt = con->createStatement();
         res = stmt->executeQuery("SELECT DISTINCT author FROM booktitles");
 
@@ -68,6 +69,6 @@ int main()
         while (res->next()) {
             string author = res->getString("author");
             cout << author << endl;
-        }   
+        }
 
 */
