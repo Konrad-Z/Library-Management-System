@@ -15,7 +15,7 @@ using namespace std;
 string GetDatabasePassword() { 
     string Password;
     cout << "Enter MySQL password: ";
-    cin >> Password;  // For actual security, replace with a method that hides input
+    cin >> Password;  // For further improvement, add character hiding
     return Password;
 }
 
@@ -33,7 +33,7 @@ int main()
     sql::PreparedStatement* pstmt;
     sql::ResultSet* res;
 
-    try // Try catch statement  if the system cannot connect to the server
+    try // Try catch statement for validation and error handling if the system cannot connect to the database
     {
         // Get MySQL driver instance (Gets the specific MySQL program that is running to manage the database)
         driver = get_driver_instance();
@@ -50,7 +50,27 @@ int main()
         exit(1);
     }
 
-    system("pause");
+    // List of options the user may choose
+    string MainOptions[6] = { "Manage users", "Manage book titles", "Manage book copies", "Manage borrowed books", "Search", "Quit"};
+    string SearchOptions[4] = { "Search for a user", "Search for a Book", "Search for borrowed books" };
+
+    cout << "\nWelcome to the Library Management App" << endl;
+    cout << "---------------------------------------" << endl;
+    cout << "Choose your option - use the number" << endl;
+    cout << "#" << "\t" << "Option" << endl;;
+
+    for (int option = 0; option < sizeof(MainOptions) / sizeof(MainOptions[0]); option++) {
+        cout << option << "\t" << MainOptions[option] << endl;
+    }
+
+
+
+
+
+
+
+
+
     return 0;
 }
 
