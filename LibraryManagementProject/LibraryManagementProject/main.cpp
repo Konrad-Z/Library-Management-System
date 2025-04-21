@@ -61,6 +61,7 @@ public:
                     << setw(15) << res->getString("genre") << endl;
             }
 
+            // Cleaning Up resources, Frees up memory
             delete res;
             delete stmt;
         }
@@ -68,6 +69,35 @@ public:
             cerr << "Error viewing book titles: " << e.what() << endl;
         }
     }
+
+    void AddTitle() {
+        BookTitles currentTitle; // Creating the instance of the struct
+        cout << "Enter The Title of the book: " << endl;
+        cin >> currentTitle.title;
+        cout << "Enter The author of the book: " << endl;
+        cin >> currentTitle.author;
+        cout << "What year was the book published: (YYYY)" << endl;
+        currentTitle.published_year = TypeCheck();
+        cout << "Enter The Genre of the book: " << endl;
+        cin >> currentTitle.genre;
+        
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "INSERT INTO booktitles (title, author, published_year, genre) VALUES (?, ?, ?, ?)");
+            pstmt->setString(1, currentTitle.title);
+            pstmt->setString(2, currentTitle.author);
+            pstmt->setInt(3, currentTitle.published_year);
+            pstmt->setString(4, currentTitle.genre);
+            pstmt->execute();
+            delete pstmt;
+            cout << "Book title added successfully.\n";
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error adding book title: " << e.what() << endl;
+        }
+    }
+
+
 };
 
 
@@ -89,7 +119,7 @@ const string password = GetDatabasePassword();
 int TypeCheck() {
     int choice;
     while (true) {
-        cout << "Enter your choice: ";
+        cout << "Enter: ";
         if (!(cin >> choice)) {
             cout << "Invalid input. Please enter a number.\n";
             cin.clear();
