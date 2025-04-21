@@ -63,7 +63,7 @@ private:
 public:
     Titles(sql::Connection* connection) : con(connection) {}
 
-    void ViewAllTitles() {
+    void ViewTitles() {
         try {
             sql::Statement* stmt = con->createStatement();
             sql::ResultSet* res = stmt->executeQuery("SELECT * FROM booktitles");
@@ -118,10 +118,124 @@ public:
         }
     }
 
+    void UpdateTitle() {
+        BookTitles currentTitle;
+        
+        cout << "Enter The ID of the book you would like to edit: " << endl;
+        cin.ignore(); // Clear leftover newline if needed
+        cin >> currentTitle.book_title_id;
+
+        cout << endl;
+        cout << "New details of the book";
+        cout << "-----------------------";
+        cout << "Enter The Title of the book: " << endl;
+        cin.ignore(); // Clear leftover newline if needed
+        getline(cin, currentTitle.title);
+
+        cout << "Enter The author of the book: " << endl;
+        getline(cin, currentTitle.author);
+
+        cout << "What year was the book published: (YYYY)" << endl;
+        currentTitle.published_year = TypeCheck();
+
+        cout << "Enter The Genre of the book: " << endl;
+        cin.ignore(); // Clear newline after TypeCheck if it uses cin
+        getline(cin, currentTitle.genre);
+
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "UPDATE booktitles SET title = ?, author = ?, published_year = ?, genre = ? WHERE book_title_id = ?");
+            pstmt->setString(1, currentTitle.title);
+            pstmt->setString(2, currentTitle.author);
+            pstmt->setInt(3, currentTitle.published_year);
+            pstmt->setString(4, currentTitle.genre);
+            pstmt->setInt(5, currentTitle.book_title_id);
+            pstmt->execute();
+            delete pstmt;
+            cout << "Book title updated successfully.\n";
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error editing book title: " << e.what() << endl;
+        }
+
+    }
+
+    void DeleteTitle() {
+        BookTitles currentTitle;
+
+        cout << "Enter The ID of the book you would like to Delete " << endl;
+        cin.ignore(); // Clear leftover newline if needed
+        cin >> currentTitle.book_title_id;
+
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "DELETE FROM booktitles WHERE book_title_id = ?");
+            pstmt->setInt(1, currentTitle.book_title_id);
+            pstmt->execute();
+            delete pstmt;
+            cout << "Book title deleted successfully.\n";
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error deleting book title: " << e.what() << endl;
+        }
+    }
 
 };
 
+class Users {
+private:
+    sql::Connection* con;
+public:
+    Users(sql::Connection* connection) : con(connection) {}
 
+    void ViewUsers() {
+        try {
+            sql::Statement* stmt = con->createStatement();
+            sql::ResultSet* res = stmt->executeQuery("SELECT * FROM users");
+
+            cout << left << setw(6) << "ID" << setw(25) << "Name" << setw(30) << "Email" << setw(15) << "Phone" << endl;
+            while (res->next()) {
+                cout << left << setw(6) << res->getInt("user_id")
+                    << setw(25) << res->getString("name")
+                    << setw(30) << res->getString("email")
+                    << setw(15) << res->getString("phone") << endl;
+            }
+
+            delete res;
+            delete stmt;
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error viewing users: " << e.what() << endl;
+        }
+    }
+    void AddUser() {
+        LibraryUsers currentUser; // Creating the instance of the struct
+        cout << "Enter the full name of the user: " << endl;
+        cin.ignore(); // Clear leftover newline if needed
+        getline(cin, currentUser.name);
+
+        cout << "Enter the email of the user: " << endl;
+        getline(cin, currentUser.email);
+
+        cout << "Enter the Phone number of the user: " << endl;
+        cin.ignore(); // Clear leftover newline if needed
+        getline(cin, currentUser.phone);
+
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "INSERT INTO users (name, email, phone) VALUES (?, ?, ?)");
+            pstmt->setString(1, currentUser.name);
+            pstmt->setString(2, currentUser.email);
+            pstmt->setString(3, currentUser.phone);
+            pstmt->execute();
+            delete pstmt;
+            cout << "User added successfully.\n";
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error adding user: " << e.what() << endl;
+        }
+    }
+};
 
 // Function to get the database password from the user, the password isnt just hardcoded
 string GetDatabasePassword() { 
@@ -142,6 +256,7 @@ const string password = GetDatabasePassword();
 void MainMenu(sql::Connection* con) {
 
     // Setting Class instances
+    Users UserManager(con);
     Titles TitlesManager(con);
 
     // List of options the user may choose
@@ -179,10 +294,10 @@ void MainMenu(sql::Connection* con) {
 
                 switch (userChoice) {
                 case 0:
-                    cout << "Viewing all users...\n";
+                    UserManager.ViewUsers();
                     break;
                 case 1:
-                    cout << "Adding a user...\n";
+                    UserManager.AddUser();
                     break;
                 case 2:
                     cout << "Editing a user...\n";
@@ -213,16 +328,16 @@ void MainMenu(sql::Connection* con) {
 
                 switch (bookTitleChoice) {
                 case 0:
-                    TitlesManager.ViewAllTitles();
+                    TitlesManager.ViewTitles();
                     break;
                 case 1:
                     TitlesManager.AddTitle();
                     break;
                 case 2:
-                    cout << "Editing a book title...\n";
+                    TitlesManager.UpdateTitle();
                     break;
                 case 3:
-                    cout << "Deleting a book title...\n";
+                    TitlesManager.DeleteTitle();
                     break;
                 case 4:
                     cout << "Returning to Main Menu...\n";
