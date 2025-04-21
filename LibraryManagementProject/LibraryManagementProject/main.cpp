@@ -267,8 +267,6 @@ public:
             cerr << "Error editing user: " << e.what() << endl;
         }
 
-
-
     }
 
     void DeleteUser() {
@@ -289,6 +287,130 @@ public:
         }
     }
 };
+
+class copies {
+private:
+    sql::Connection* con;
+public:
+    copies(sql::Connection* connection) : con(connection) {}
+
+    void ViewCopies() {
+        try {
+            sql::Statement* stmt = con->createStatement();
+            sql::ResultSet* res = stmt->executeQuery("SELECT * FROM bookcopies");
+
+            cout << left << setw(10) << "CopyID" << setw(15) << "TitleID" << setw(15) << "Available" << endl;
+            while (res->next()) {
+                cout << left << setw(10) << res->getInt("copy_id")
+                    << setw(15) << res->getInt("book_title_id")
+                    << setw(15) << (res->getBoolean("available") ? "Yes" : "No") << endl;
+            }
+
+            delete res;
+            delete stmt;
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error viewing book copies: " << e.what() << endl;
+        }
+    }
+    void AddCopy() {
+        BookCopies currentCopy;
+        cout << "Enter the ID of the book you would like to add a copy of: " << endl;
+        currentCopy.book_title_id = TypeCheck();
+        currentCopy.available = true;
+
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "INSERT INTO bookcopies (book_title_id, available) VALUES (?, ?)");
+            pstmt->setInt(1, currentCopy.book_title_id);
+            pstmt->setBoolean(2, currentCopy.available);
+            pstmt->execute();
+            delete pstmt;
+            cout << "Book copy added successfully.\n";
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error adding book copy: " << e.what() << endl;
+        }
+    }
+    void UpdateCopy() {
+        BookCopies currentCopy;
+        cout << "Enter the ID of the book copy you would like edit: " << endl;
+        currentCopy.copy_id = TypeCheck();
+        cout << endl;
+        cout << "New details of the book copy" << endl;
+        cout << "-----------------------" << endl;
+        cout << "Enter the ID of the new book title your adding a copy off (If only changing availablity Leave as is)" << endl;
+        currentCopy.book_title_id = TypeCheck();
+
+        cout << "Enter Book Availability: (true/false) ";
+        cin >> currentCopy.available;
+
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "UPDATE bookcopies SET book_title_id = ?, available = ? WHERE copy_id = ?");
+            pstmt->setInt(1, currentCopy.book_title_id);
+            pstmt->setBoolean(2, currentCopy.available);
+            pstmt->setInt(3, currentCopy.copy_id);
+            pstmt->execute();
+            delete pstmt;
+            cout << "Book copy updated successfully.\n";
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error editing book copy: " << e.what() << endl;
+        }
+
+    }
+
+    void RemoveCopy() {
+        BookCopies currentCopy;
+        cout << "Enter the ID of the copy you would like to remove: " << endl;
+        currentCopy.copy_id = TypeCheck();
+
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "DELETE FROM bookcopies WHERE copy_id = ?");
+            pstmt->setInt(1, currentCopy.copy_id);
+            pstmt->execute();
+            delete pstmt;
+            cout << "Book copy deleted successfully.\n";
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error deleting book copy: " << e.what() << endl;
+        }
+    }
+};
+
+class Borrowed {
+private:
+    sql::Connection* con;
+
+public:
+    Borrowed(sql::Connection* connection) : con(connection) {}
+
+    void viewBorrowed() {
+        try {
+            sql::Statement* stmt = con->createStatement();
+            sql::ResultSet* res = stmt->executeQuery("SELECT * FROM books_borrowed");
+
+            cout << left << setw(10) << "BorrowID" << setw(10) << "CopyID" << setw(10) << "UserID" << setw(20) << "Date Borrowed" << setw(20) << "Return Date" << endl;
+            while (res->next()) {
+                cout << left << setw(10) << res->getInt("borrow_id")
+                    << setw(10) << res->getInt("copy_id")
+                    << setw(10) << res->getInt("user_id")
+                    << setw(20) << res->getString("date_borrowed")
+                    << setw(20) << res->getString("return_date") << endl;
+            }
+
+            delete res;
+            delete stmt;
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error viewing borrowed books: " << e.what() << endl;
+        }
+    }
+};
+
+
 
 // Function to get the database password from the user, the password isnt just hardcoded
 string GetDatabasePassword() { 
@@ -311,14 +433,16 @@ void MainMenu(sql::Connection* con) {
     // Setting Class instances
     Users UserManager(con);
     Titles TitlesManager(con);
+    copies CopiesManager(con);
+    Borrowed Borrowed_BooksManager(con);
 
     // List of options the user may choose
     string MainOptions[6] = { "Manage users", "Manage book titles", "Manage book copies", "Manage borrowed books", "Search", "Quit" };
     string SearchOptions[4] = { "Search for a user", "Search for a Book", "Search for borrowed books", "Main menu" };
     string UserOptions[5] = { "View all users", "Add User", "Edit User", "Delete User", "Main menu" };
     string BookTitleOptions[5] = { "View all book titles", "Add new book title", "Edit book title", "Delete book title", "Main menu" };
-    string BookCopyOptions[4] = { "View all copies of a book title","Add copy to a book title", "Change copy availability", "Main menu" };
-    string BorrowOptions[4] = { "Borrow a book", "Return a book", "View Borrowed books by a user", "Main menu" };
+    string BookCopyOptions[5] = { "View all copies of a book title","Add copy to a book title", "Edit Book Copy", "Remove Book Copy" ,"Main menu" };
+    string BorrowOptions[4] = { "View records", "Borrow a book", "View Borrowed books by a user", "Main menu" };
 
     int UserInput; // Declaring Users input
 
@@ -415,22 +539,25 @@ void MainMenu(sql::Connection* con) {
 
                 switch (copyChoice) {
                 case 0:
-                    cout << "Viewing all book copies...\n";
+                    CopiesManager.ViewCopies();
                     break;
                 case 1:
-                    cout << "Adding book copy...\n";
+                    CopiesManager.AddCopy();
                     break;
                 case 2:
-                    cout << "Changing copy availability...\n";
+                    CopiesManager.UpdateCopy();
                     break;
                 case 3:
+                    CopiesManager.RemoveCopy();
+                    break;
+                case 4:
                     cout << "Returning to Main Menu...\n";
                     break;
                 default:
                     cout << "Invalid choice in book copy menu.\n";
                     break;
                 }
-            } while (copyChoice != 3); // Returns to main menu
+            } while (copyChoice != 4); // Returns to main menu
             break;
         }
 
@@ -446,7 +573,7 @@ void MainMenu(sql::Connection* con) {
 
                 switch (borrowChoice) {
                 case 0:
-                    cout << "Borrowing a book...\n";
+                    Borrowed_BooksManager.viewBorrowed();
                     break;
                 case 1:
                     cout << "Returning a book...\n";
