@@ -126,8 +126,8 @@ public:
         cin >> currentTitle.book_title_id;
 
         cout << endl;
-        cout << "New details of the book";
-        cout << "-----------------------";
+        cout << "New details of the book" << endl;
+        cout << "-----------------------" << endl;
         cout << "Enter The Title of the book: " << endl;
         cin.ignore(); // Clear leftover newline if needed
         getline(cin, currentTitle.title);
@@ -162,10 +162,8 @@ public:
 
     void DeleteTitle() {
         BookTitles currentTitle;
-
-        cout << "Enter The ID of the book you would like to Delete " << endl;
-        cin.ignore(); // Clear leftover newline if needed
-        cin >> currentTitle.book_title_id;
+        cout << "Enter Book Title ID to delete";
+        currentTitle.book_title_id = TypeCheck();
 
         try {
             sql::PreparedStatement* pstmt = con->prepareStatement(
@@ -235,6 +233,61 @@ public:
             cerr << "Error adding user: " << e.what() << endl;
         }
     }
+    void UpdateUser() {
+        LibraryUsers currentUser;
+        cout << "Enter The ID of the User you would like to edit: " << endl;
+        cin.ignore(); // Clear leftover newline if needed
+        cin >> currentUser.user_id;
+        cout << endl;
+        cout << "New details of the user" << endl;
+        cout << "-----------------------" << endl;
+        cout << "Enter the full name of the user: " << endl;
+        cin.ignore(); // Clear leftover newline if needed
+        getline(cin, currentUser.name);
+
+        cout << "Enter the email of the user: " << endl;
+        getline(cin, currentUser.email);
+
+        cout << "Enter the Phone number of the user: " << endl;
+        cin.ignore(); // Clear leftover newline if needed
+        getline(cin, currentUser.phone);
+
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "UPDATE users SET name = ?, email = ?, phone = ? WHERE user_id = ?");
+            pstmt->setString(1, currentUser.name);
+            pstmt->setString(2, currentUser.email);
+            pstmt->setString(3, currentUser.phone);
+            pstmt->setInt(4, currentUser.user_id);
+            pstmt->execute();
+            delete pstmt;
+            cout << "User updated successfully.\n";
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error editing user: " << e.what() << endl;
+        }
+
+
+
+    }
+
+    void DeleteUser() {
+        LibraryUsers currentUser;
+        cout << "Enter User ID to delete";
+        currentUser.user_id = TypeCheck();
+
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "DELETE FROM users WHERE user_id = ?");
+            pstmt->setInt(1, currentUser.user_id);
+            pstmt->execute();
+            delete pstmt;
+            cout << "User deleted successfully.\n";
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error deleting user: " << e.what() << endl;
+        }
+    }
 };
 
 // Function to get the database password from the user, the password isnt just hardcoded
@@ -300,10 +353,10 @@ void MainMenu(sql::Connection* con) {
                     UserManager.AddUser();
                     break;
                 case 2:
-                    cout << "Editing a user...\n";
+                    UserManager.UpdateUser();
                     break;
                 case 3:
-                    cout << "Deleting a user...\n";
+                    UserManager.DeleteUser();
                     break;
                 case 4:
                     cout << "Returning to Main Menu...\n";
