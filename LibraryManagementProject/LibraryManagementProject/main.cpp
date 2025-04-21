@@ -3,6 +3,8 @@
 // Libraries
 #include <stdlib.h>
 #include <iostream>
+#include <string>
+#include <iomanip>
 #include "mysql_connection.h"
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
@@ -14,7 +16,7 @@ using namespace std;
 
 // Structs For data storage, Temporary used for holding data whilst accessing the database etc
 
-struct Users {
+struct LibraryUsers {
     int user_id;
     string name, email, phone;
 };
@@ -38,7 +40,35 @@ struct BorrowedBooks {
     string date_borrowed, return_date;
 };
 
+class Titles {
+private:
+    sql::Connection* con;
 
+public:
+    Titles(sql::Connection* connection) : con(connection) {}
+
+    void ViewAllTitles() {
+        try {
+            sql::Statement* stmt = con->createStatement();
+            sql::ResultSet* res = stmt->executeQuery("SELECT * FROM booktitles");
+
+            cout << left << setw(6) << "ID" << left << setw(52) << "Title" << left << setw(33) << "Author" << left << setw(8) << "Year" << left << setw(16) << "Genre" << endl;
+            while (res->next()) {
+                cout << setw (5) << res->getInt("book_title_id") <<  " | " 
+                    << setw(50) << res->getString("title") << " | "
+                    << setw(30) << res->getString("author") << " | "
+                    << setw(4) << res->getInt("published_year") << " | "
+                    << setw(15) << res->getString("genre") << endl;
+            }
+
+            delete res;
+            delete stmt;
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error viewing book titles: " << e.what() << endl;
+        }
+    }
+};
 
 
 
@@ -72,7 +102,11 @@ int TypeCheck() {
 }
 
 // Main menu function
-void MainMenu() { 
+void MainMenu(sql::Connection* con) {
+
+    // Setting Class instances
+    Titles TitlesManager(con);
+
     // List of options the user may choose
     string MainOptions[6] = { "Manage users", "Manage book titles", "Manage book copies", "Manage borrowed books", "Search", "Quit" };
     string SearchOptions[4] = { "Search for a user", "Search for a Book", "Search for borrowed books", "Main menu" };
@@ -142,7 +176,7 @@ void MainMenu() {
 
                 switch (bookTitleChoice) {
                 case 0:
-                    cout << "Viewing all book titles...\n";
+                    TitlesManager.ViewAllTitles();
                     break;
                 case 1:
                     cout << "Adding a book title...\n";
@@ -287,6 +321,8 @@ int main()
         con = driver->connect(server, username, password);
         //Sets which database to use, The system can store multiple, I only require 1
         con->setSchema("librarysystem");
+
+        MainMenu(con);
  
     }
     catch (sql::SQLException& e) // Error message if the system could not connect to the database
@@ -295,7 +331,7 @@ int main()
         system("pause");
         exit(1);
     }
-    MainMenu();
+    
 }
 
 /*
