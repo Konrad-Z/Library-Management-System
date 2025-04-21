@@ -40,6 +40,22 @@ struct BorrowedBooks {
     string date_borrowed, return_date;
 };
 
+// Function for validating menu input
+int TypeCheck() {
+    int choice;
+    while (true) {
+        cout << "Enter: ";
+        if (!(cin >> choice)) {
+            cout << "Invalid input. Please enter a number.\n";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
+        break;
+    }
+    return choice;
+}
+
 class Titles {
 private:
     sql::Connection* con;
@@ -73,13 +89,18 @@ public:
     void AddTitle() {
         BookTitles currentTitle; // Creating the instance of the struct
         cout << "Enter The Title of the book: " << endl;
-        cin >> currentTitle.title;
+        cin.ignore(); // Clear leftover newline if needed
+        getline(cin, currentTitle.title);
+
         cout << "Enter The author of the book: " << endl;
-        cin >> currentTitle.author;
+        getline(cin, currentTitle.author);
+
         cout << "What year was the book published: (YYYY)" << endl;
         currentTitle.published_year = TypeCheck();
+
         cout << "Enter The Genre of the book: " << endl;
-        cin >> currentTitle.genre;
+        cin.ignore(); // Clear newline after TypeCheck if it uses cin
+        getline(cin, currentTitle.genre);
         
         try {
             sql::PreparedStatement* pstmt = con->prepareStatement(
@@ -115,21 +136,7 @@ const string server = "tcp://127.0.0.1:3306";
 const string username = "root";
 const string password = GetDatabasePassword();
 
-// Function for validating menu input
-int TypeCheck() {
-    int choice;
-    while (true) {
-        cout << "Enter: ";
-        if (!(cin >> choice)) {
-            cout << "Invalid input. Please enter a number.\n";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            continue;
-        }
-        break;
-    }
-    return choice;
-}
+
 
 // Main menu function
 void MainMenu(sql::Connection* con) {
@@ -209,7 +216,7 @@ void MainMenu(sql::Connection* con) {
                     TitlesManager.ViewAllTitles();
                     break;
                 case 1:
-                    cout << "Adding a book title...\n";
+                    TitlesManager.AddTitle();
                     break;
                 case 2:
                     cout << "Editing a book title...\n";
