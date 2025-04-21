@@ -11,6 +11,37 @@
 #include <cppconn/resultset.h>
 using namespace std;
 
+
+// Structs For data storage, Temporary used for holding data whilst accessing the database etc
+
+struct Users {
+    int user_id;
+    string name, email, phone;
+};
+
+struct BookTitles {
+    int book_title_id;
+    string title, author, genre;
+    int published_year;
+};
+
+struct BookCopies {
+    int copy_id;
+    int book_title_id;
+    bool available;
+};
+
+struct BorrowedBooks {
+    int borrow_id;
+    int copy_id;
+    int user_id;
+    string date_borrowed, return_date;
+};
+
+
+
+
+
 // Function to get the database password from the user, the password isnt just hardcoded
 string GetDatabasePassword() { 
     string Password;
@@ -40,7 +71,8 @@ int TypeCheck() {
     return choice;
 }
 
-void MainMenu() { // Main menu function
+// Main menu function
+void MainMenu() { 
     // List of options the user may choose
     string MainOptions[6] = { "Manage users", "Manage book titles", "Manage book copies", "Manage borrowed books", "Search", "Quit" };
     string SearchOptions[4] = { "Search for a user", "Search for a Book", "Search for borrowed books", "Main menu" };
