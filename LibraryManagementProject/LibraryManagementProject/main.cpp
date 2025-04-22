@@ -377,7 +377,6 @@ public:
         catch (sql::SQLException& e) {
             cerr << "Error editing book copy: " << e.what() << endl;
         }
-
     }
 
     void RemoveCopy() {
@@ -527,7 +526,34 @@ public:
                     << setw(30) << res->getString("email")
                     << setw(15) << res->getString("phone") << endl;
             }
+            delete res;
+            delete pstmt;
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error searching users: " << e.what() << endl;
+        }
+    }
+    void TitleSearch() {
+        BookTitles currentTitle;
+        cout << "Enter the Title of the book you are searching for: " << endl;
+        cin.ignore(); // Clear leftover newline if needed
+        getline(cin, currentTitle.title);
 
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "SELECT * FROM booktitles WHERE title LIKE ?");
+            pstmt->setString(1, "%" + currentTitle.title + "%");
+
+            sql::ResultSet* res = pstmt->executeQuery();
+
+            cout << left << setw(6) << "ID" << left << setw(52) << "Title" << left << setw(33) << "Author" << left << setw(8) << "Year" << left << setw(16) << "Genre" << endl;
+            while (res->next()) {
+                cout << setw(5) << res->getInt("book_title_id") << " | "
+                    << setw(50) << res->getString("title") << " | "
+                    << setw(30) << res->getString("author") << " | "
+                    << setw(4) << res->getInt("published_year") << " | "
+                    << setw(15) << res->getString("genre") << endl;
+            }
             delete res;
             delete pstmt;
         }
@@ -564,7 +590,7 @@ void MainMenu(sql::Connection* con) {
 
     // List of options the user may choose
     string MainOptions[6] = { "Manage users", "Manage book titles", "Manage book copies", "Manage borrowed books", "Search", "Quit" };
-    string SearchOptions[4] = { "Search for a user", "Search for a Book", "Search for borrowed books", "Main menu" };
+    string SearchOptions[3] = { "Search for a user", "Search for a book title", "Main menu" };
     string UserOptions[5] = { "View all users", "Add User", "Edit User", "Delete User", "Main menu" };
     string BookTitleOptions[5] = { "View all book titles", "Add new book title", "Edit book title", "Delete book title", "Main menu" };
     string BookCopyOptions[5] = { "View all copies of a book title","Add copy to a book title", "Edit Book Copy", "Remove Book Copy" ,"Main menu" };
@@ -737,19 +763,16 @@ void MainMenu(sql::Connection* con) {
                     SearchManager.UserSearch();
                     break;
                 case 1:
-                    cout << "Searching for a book...\n";
+                    SearchManager.TitleSearch();
                     break;
                 case 2:
-                    cout << "Searching borrowed books...\n";
-                    break;
-                case 3:
                     cout << "Returning to Main Menu...\n";
                     break;
                 default:
                     cout << "Invalid choice in search menu.\n";
                     break;
                 }
-            } while (searchChoice != 3); // Returns to main menu
+            } while (searchChoice != 2); // Returns to main menu
             break;
         }
 
