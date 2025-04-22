@@ -359,14 +359,14 @@ public:
 
 class copies { // Copies Class
 private:
-    sql::Connection* con;
+    sql::Connection* con; // Database connection
 public:
-    copies(sql::Connection* connection) : con(connection) {}
+    copies(sql::Connection* connection) : con(connection) {} // Constructor which passes in the database connection to the methods
 
-    void ViewCopies() {
+    void ViewCopies() { // View copies Method
         try {
             sql::Statement* stmt = con->createStatement();
-            sql::ResultSet* res = stmt->executeQuery("SELECT * FROM bookcopies");
+            sql::ResultSet* res = stmt->executeQuery("SELECT * FROM bookcopies"); // SQL statement
 
             cout << left << setw(10) << "CopyID" << setw(15) << "TitleID" << setw(15) << "Available" << endl;
             while (res->next()) {
@@ -378,11 +378,11 @@ public:
             delete res;
             delete stmt;
         }
-        catch (sql::SQLException& e) {
+        catch (sql::SQLException& e) { // Catches error
             cerr << "Error viewing book copies: " << e.what() << endl;
         }
     }
-    void AddCopy() {
+    void AddCopy() { // Adds copy method
         BookCopies currentCopy;
         cout << "Enter the ID of the book you would like to add a copy of: " << endl;
         currentCopy.book_title_id = TypeCheck();
@@ -401,7 +401,7 @@ public:
             cerr << "Error adding book copy: " << e.what() << endl;
         }
     }
-    void UpdateCopy() {
+    void UpdateCopy() { // Update copy method
         BookCopies currentCopy;
         cout << "Enter the ID of the book copy you would like edit: " << endl;
         currentCopy.copy_id = TypeCheck();
@@ -429,7 +429,7 @@ public:
         }
     }
 
-    void RemoveCopy() {
+    void RemoveCopy() { // Deletes the copy methods
         BookCopies currentCopy;
         cout << "Enter the ID of the copy you would like to remove: " << endl;
         currentCopy.copy_id = TypeCheck();
@@ -448,7 +448,7 @@ public:
     }
 };
 
-class Borrowed {
+class Borrowed { // Borrowed books Class
 private:
     sql::Connection* con;
 
@@ -549,7 +549,7 @@ public:
     }
 };
 
-class Search {
+class Search { // Search Class
 private:
     sql::Connection* con;
 
@@ -563,7 +563,7 @@ public:
         getline(cin, currentUser.name);
 
         char UserInput;
-        cout << "Do you want to save the results to a text file? (y/n): ";
+        cout << "Do you want to save the results to a text file? (y/n): "; // Asks the User if they would like to 
         cin >> UserInput;
         cin.ignore(); // Clear leftover newline if needed
 
@@ -690,7 +690,7 @@ void MainMenu(sql::Connection* con) {
     Borrowed Borrowed_BooksManager(con);
     Search SearchManager(con);
 
-    // List of options the user may choose
+    // Array of options the user may choose,
     string MainOptions[6] = { "Manage users", "Manage book titles", "Manage book copies", "Manage borrowed books", "Search", "Quit" };
     string SearchOptions[3] = { "Search for a user", "Search for a book title", "Main menu" };
     string UserOptions[5] = { "View all users", "Add User", "Edit User", "Delete User", "Main menu" };
@@ -706,7 +706,7 @@ void MainMenu(sql::Connection* con) {
         cout << "Choose your option - use the number" << endl;
         cout << "#" << "\t" << "Option" << endl;;
 
-        for (int option = 0; option < sizeof(MainOptions) / sizeof(MainOptions[0]); option++) { // Displays Main options
+        for (int option = 0; option < sizeof(MainOptions) / sizeof(MainOptions[0]); option++) { // For loop displaying every option
             cout << option << "\t" << MainOptions[option] << endl;
         }
 
@@ -715,7 +715,7 @@ void MainMenu(sql::Connection* con) {
         switch (UserInput) { // Condition to check what the user entered
         case 0: { // Manage Users
             int userChoice;
-            do { // 2nd do while to allow the user to retun
+            do { // 2nd do while to allow the user to retur to main menu
                 cout << "\nManage Users" << endl;
                 cout << "--------------" << endl;
                 for (int option = 0; option < sizeof(UserOptions) / sizeof(UserOptions[0]); option++) {
@@ -737,10 +737,10 @@ void MainMenu(sql::Connection* con) {
                     UserManager.DeleteUser();
                     break;
                 case 4:
-                    cout << "Returning to Main Menu...\n";
+                    cout << "Back to Main Menu\n";
                     break;
                 default:
-                    cout << "Invalid choice in user menu.\n";
+                    cout << "Invalid choice in user menu.\n"; // Error message range check
                     break;
                 }
             } while (userChoice != 4);
@@ -752,7 +752,7 @@ void MainMenu(sql::Connection* con) {
             do {
                 cout << "\nManage Book Titles" << endl;
                 cout << "-----------------------------" << endl;
-                for (int option = 0; option < sizeof(BookTitleOptions) / sizeof(BookTitleOptions[0]); option++) {
+                for (int option = 0; option < sizeof(BookTitleOptions) / sizeof(BookTitleOptions[0]); option++) { // For loop displaying title options
                     cout << option << "\t" << BookTitleOptions[option] << endl;
                 }
                 bookTitleChoice = TypeCheck();
@@ -771,10 +771,10 @@ void MainMenu(sql::Connection* con) {
                     TitlesManager.DeleteTitle();
                     break;
                 case 4:
-                    cout << "Returning to Main Menu...\n";
+                    cout << "Back to Main Menu..\n";
                     break;
                 default:
-                    cout << "Invalid choice in book title menu.\n";
+                    cout << "Invalid choice in book title menu.\n"; // Error message
                     break;
                 }
             } while (bookTitleChoice != 4); // Returns to main menu
@@ -786,7 +786,7 @@ void MainMenu(sql::Connection* con) {
             do {
                 cout << "\nManage Book Copies" << endl;
                 cout << "--------------------" << endl;
-                for (int option = 0; option < sizeof(BookCopyOptions) / sizeof(BookCopyOptions[0]); option++) {
+                for (int option = 0; option < sizeof(BookCopyOptions) / sizeof(BookCopyOptions[0]); option++) { // For loop Displaying Copy option
                     cout << option << "\t" << BookCopyOptions[option] << endl;
                 }
                 copyChoice = TypeCheck();
@@ -820,10 +820,10 @@ void MainMenu(sql::Connection* con) {
             do {
                 cout << "\nManage Borrowed Books" << endl;
                 cout << "-----------------------" << endl;
-                for (int option = 0; option < sizeof(BorrowOptions) / sizeof(BorrowOptions[0]); option++) {
+                for (int option = 0; option < sizeof(BorrowOptions) / sizeof(BorrowOptions[0]); option++) { // Displays Borrow options
                     cout << option << "\t" << BorrowOptions[option] << endl;
                 }
-                borrowChoice = TypeCheck();
+                borrowChoice = TypeCheck(); // Type check validation
 
                 switch (borrowChoice) {
                 case 0:
@@ -839,22 +839,22 @@ void MainMenu(sql::Connection* con) {
                     Borrowed_BooksManager.DeleteBorrowRecord();
                     break;
                 case 4:
-                    cout << "Returning to Main Menu...\n";
+                    cout << "Back to Main Menu...\n";
                     break;
                 default:
-                    cout << "Invalid choice in borrow menu.\n";
+                    cout << "Invalid choice in this menu\n"; // Error message
                     break;
                 }
             } while (borrowChoice != 4); // Returns to main menu
             break;
         }
 
-        case 4: { // Search
+        case 4: { // Search Options
             int searchChoice;
             do {
-                cout << "\nSearch Menu" << endl;
+                cout << "\nSearch Menu" << endl; // Menu for searching
                 cout << "-------------" << endl;
-                for (int option = 0; option < sizeof(SearchOptions) / sizeof(SearchOptions[0]); option++) {
+                for (int option = 0; option < sizeof(SearchOptions) / sizeof(SearchOptions[0]); option++) { // Displays Search options from the array
                     cout << option << "\t" << SearchOptions[option] << endl;
                 }
 
@@ -868,7 +868,7 @@ void MainMenu(sql::Connection* con) {
                     SearchManager.TitleSearch();
                     break;
                 case 2:
-                    cout << "Returning to Main Menu...\n";
+                    cout << "Returning to main menu\n";
                     break;
                 default:
                     cout << "Invalid choice in search menu.\n";
@@ -892,7 +892,7 @@ void MainMenu(sql::Connection* con) {
 
 int main()
 {
-    // Variable declarations using SQL connector
+    // Variable declarations using SQL connector, Gotten from MySQL connector documentation
     sql::Driver* driver;
     sql::Connection* con;
     sql::Statement* stmt;
@@ -917,93 +917,6 @@ int main()
         system("pause");
         exit(1);
     }
-    
+    return 0;
 }
 
-/*
-// Execute the query
-        stmt = con->createStatement();
-        res = stmt->executeQuery("SELECT DISTINCT author FROM booktitles");
-
-        cout << "Authors:\n";
-        while (res->next()) {
-            string author = res->getString("author");
-            cout << author << endl;
-        }
-
-*/
-
-// Clean up resources
-        //delete res;
-       //delete stmt;
-        //delete con;
-
-
-//    while (true) {
-//        cout << "\n";
-//        switch (UserInput) {
-//        case 0:
-//            cout << "Manage Users" << endl;
-//            cout << "------------" << endl;
-//            cout << "Choose your option - use the number" << endl;
-//            cout << "#" << "\t" << "Option" << endl;
-//
-//            for (int option = 0; option < sizeof(UserOptions) / sizeof(UserOptions[0]); option++) {
-//                cout << option << "\t" << UserOptions[option] << endl;
-//            }
-//
-//            
-//             
-//            switch (UserInput) {
-//            case 0:
-//              // call function to view users
-//            case 1:
-//                // call function to add user
-//            case 2:
-//                // call function to edit user
-//            case 3:
-//                // call function to delete user
-//            case 4:
-//                cout << "Returning to main menu...\n";
-//                break;
-//            }
-//        case 1:
-//            cout << "Manage Book Titles" << endl;
-//            cout << "------------" << endl;
-//            cout << "Choose your option - use the number" << endl;
-//            cout << "#" << "\t" << "Option" << endl;
-//
-//            for (int option = 0; option < sizeof(BookTitleOptions) / sizeof(BookTitleOptions[0]); option++) {
-//                cout << option << "\t" << BookTitleOptions[option] << endl;
-//            }
-//
-//           
-//            switch (UserInput) {
-//            case 0:
-//                // call function to view Book Titles
-//            case 1:
-//                // call function to add Book Titles
-//            case 2:
-//                // call function to edit Book Titles
-//            case 3:
-//                // call function to delete Book Titles
-//            case 4:
-//                cout << "Returning to main menu...\n";
-//                break;
-//            }
-//            break;
-//            
-//        }
-//        
-//
-//    }
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//    return 0;
