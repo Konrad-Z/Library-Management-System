@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
+#include <regex>
 #include "mysql_connection.h"
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
@@ -54,6 +55,24 @@ int TypeCheck() {
         break;
     }
     return choice;
+}
+
+string GetDate(string question) {
+    string date;
+
+    while (true) {
+        cout << question << "YYYY-MM-DD: " << endl;
+        cin.ignore(); // Clear leftover newline if needed
+        getline(cin, date);
+
+        regex datePattern("^\\d{4}-\\d{2}-\\d{2}$");
+        if (!regex_match(date, datePattern)) {
+            cout << "Invalid format. Please use YYYY-DD-MM \n";
+            continue;
+        }
+        break;
+    }
+    return date;
 }
 
 class Titles {
@@ -387,20 +406,20 @@ private:
 public:
     Borrowed(sql::Connection* connection) : con(connection) {}
 
-    void viewBorrowed() {
+    void ViewBorrowed() {
         try {
             sql::Statement* stmt = con->createStatement();
             sql::ResultSet* res = stmt->executeQuery("SELECT * FROM books_borrowed");
 
-            cout << left << setw(10) << "BorrowID" << setw(10) << "CopyID" << setw(10) << "UserID" << setw(20) << "Date Borrowed" << setw(20) << "Return Date" << endl;
+            cout << left << setw(10) << "BorrowID" << setw(10) << "CopyID" << setw(10) << "UserID" << setw(30) << "Date Borrowed" << setw(20) << "Return Date" << setw(20) << "Status" << endl;
             while (res->next()) {
                 cout << left << setw(10) << res->getInt("borrow_id")
                     << setw(10) << res->getInt("copy_id")
                     << setw(10) << res->getInt("user_id")
-                    << setw(20) << res->getString("date_borrowed")
-                    << setw(20) << res->getString("return_date") << endl;
+                    << setw(30) << res->getString("date_borrowed")
+                    << setw(20) << res->getString("return_date")
+                    << setw(20) << res->getString("status") << endl;
             }
-
             delete res;
             delete stmt;
         }
@@ -408,9 +427,115 @@ public:
             cerr << "Error viewing borrowed books: " << e.what() << endl;
         }
     }
+    void AddBorrowed(){
+        BorrowedBooks currentBorrowed;
+        cout << "Enter the ID of the copy you are borrowing:  " << endl;
+        currentBorrowed.copy_id = TypeCheck();
+        cout << endl;
+
+        cout << "Enter the ID of the user borrowing the book:  " << endl;
+        currentBorrowed.user_id = TypeCheck();
+        cout << endl;
+
+        currentBorrowed.return_date = GetDate("What is the return Date: ");
+        cout << endl;
+
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "INSERT INTO books_borrowed (copy_id, user_id, return_date, status) VALUES (?, ?, ?, ?)");
+            pstmt->setInt(1, currentBorrowed.copy_id);
+            pstmt->setInt(2, currentBorrowed.user_id);
+            pstmt->setString(3, currentBorrowed.return_date);
+            pstmt->setString(4, "Borrowed");  // Set manually
+            pstmt->execute();
+            delete pstmt;
+            cout << "Borrowed book record added successfully.\n";
+
+            // Sets copy availability To false
+            pstmt = con->prepareStatement(
+                "UPDATE bookcopies SET available = false WHERE copy_id = ?");
+            pstmt->setInt(1, currentBorrowed.copy_id);
+            pstmt->execute();
+            delete pstmt;
+
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error adding borrowed book: " << e.what() << endl;
+        }
+    }
+    void ReturnBook() {
+        BorrowedBooks currentBorrowed;
+        cout << "Enter the ID of the borrowed book:  " << endl;
+        currentBorrowed.borrow_id = TypeCheck();
+        cout << endl;
+
+        // Set the Book Copy as available now since it was returned
+        sql::PreparedStatement* pstmt = con->prepareStatement(
+            "UPDATE bookcopies SET available = 1 WHERE copy_id = ?");
+        pstmt->setInt(1, currentBorrowed.copy_id);
+        pstmt->execute();
+        pstmt = con->prepareStatement(
+            "UPDATE books_borrowed SET status = 'Returned' WHERE borrow_id = ?");
+        pstmt->setInt(1, currentBorrowed.borrow_id);
+        pstmt->execute();
+        delete pstmt;
+    }
+    void DeleteBorrowRecord() {
+        BorrowedBooks currentBorrowed;
+        cout << "Enter the ID of the borrowed book:  " << endl;
+        currentBorrowed.borrow_id = TypeCheck();
+        cout << endl;
+
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "DELETE FROM books_borrowed WHERE borrow_id = ?");
+            pstmt->setInt(1, currentBorrowed.borrow_id);
+            pstmt->execute();
+            delete pstmt;
+            cout << "Borrow Record deleted successfully.\n";
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error deleting Borrow records: " << e.what() << endl;
+        }
+    }
 };
 
+class Search {
+private:
+    sql::Connection* con;
 
+public:
+    Search(sql::Connection* connection) : con(connection) {}
+
+    void UserSearch() {
+        LibraryUsers currentUser;
+        cout << "Enter the full name of the user you are searching for: " << endl;
+        cin.ignore(); // Clear leftover newline if needed
+        getline(cin, currentUser.name);
+
+        try {
+            sql::PreparedStatement* pstmt = con->prepareStatement(
+                "SELECT * FROM users WHERE name LIKE ?");
+            pstmt->setString(1, "%" + currentUser.name + "%");
+
+            sql::ResultSet* res = pstmt->executeQuery();
+
+            cout << left << setw(6) << "ID" << setw(25) << "Name" << setw(30) << "Email" << setw(15) << "Phone" << endl;
+            while (res->next()) {
+                cout << left << setw(6) << res->getInt("user_id")
+                    << setw(25) << res->getString("name")
+                    << setw(30) << res->getString("email")
+                    << setw(15) << res->getString("phone") << endl;
+            }
+
+            delete res;
+            delete pstmt;
+        }
+        catch (sql::SQLException& e) {
+            cerr << "Error searching users: " << e.what() << endl;
+        }
+    }
+};
 
 // Function to get the database password from the user, the password isnt just hardcoded
 string GetDatabasePassword() { 
@@ -435,6 +560,7 @@ void MainMenu(sql::Connection* con) {
     Titles TitlesManager(con);
     copies CopiesManager(con);
     Borrowed Borrowed_BooksManager(con);
+    Search SearchManager(con);
 
     // List of options the user may choose
     string MainOptions[6] = { "Manage users", "Manage book titles", "Manage book copies", "Manage borrowed books", "Search", "Quit" };
@@ -442,7 +568,7 @@ void MainMenu(sql::Connection* con) {
     string UserOptions[5] = { "View all users", "Add User", "Edit User", "Delete User", "Main menu" };
     string BookTitleOptions[5] = { "View all book titles", "Add new book title", "Edit book title", "Delete book title", "Main menu" };
     string BookCopyOptions[5] = { "View all copies of a book title","Add copy to a book title", "Edit Book Copy", "Remove Book Copy" ,"Main menu" };
-    string BorrowOptions[4] = { "View records", "Borrow a book", "View Borrowed books by a user", "Main menu" };
+    string BorrowOptions[5] = { "View records", "Borrow a book", "Return a Book", "Delete Record", "Main menu"};
 
     int UserInput; // Declaring Users input
 
@@ -573,22 +699,25 @@ void MainMenu(sql::Connection* con) {
 
                 switch (borrowChoice) {
                 case 0:
-                    Borrowed_BooksManager.viewBorrowed();
+                    Borrowed_BooksManager.ViewBorrowed();
                     break;
                 case 1:
-                    cout << "Returning a book...\n";
+                    Borrowed_BooksManager.AddBorrowed();
                     break;
                 case 2:
-                    cout << "Viewing borrowed books by user...\n";
+                    Borrowed_BooksManager.ReturnBook();
                     break;
                 case 3:
+                    Borrowed_BooksManager.DeleteBorrowRecord();
+                    break;
+                case 4:
                     cout << "Returning to Main Menu...\n";
                     break;
                 default:
                     cout << "Invalid choice in borrow menu.\n";
                     break;
                 }
-            } while (borrowChoice != 3); // Returns to main menu
+            } while (borrowChoice != 4); // Returns to main menu
             break;
         }
 
@@ -605,7 +734,7 @@ void MainMenu(sql::Connection* con) {
 
                 switch (searchChoice) {
                 case 0:
-                    cout << "Searching for a user...\n";
+                    SearchManager.UserSearch();
                     break;
                 case 1:
                     cout << "Searching for a book...\n";
