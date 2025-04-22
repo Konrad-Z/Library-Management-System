@@ -1,12 +1,8 @@
-﻿  main.cpp
-C:\Users\Konrad\source\repos\LibrarySystem\LibraryManagementProject\LibraryManagementProject\main.cpp(776,21): warning C4101: 'res': unreferenced local variable
-C:\Users\Konrad\source\repos\LibrarySystem\LibraryManagementProject\LibraryManagementProject\main.cpp(775,29): warning C4101: 'pstmt': unreferenced local variable
-C:\Users\Konrad\source\repos\LibrarySystem\LibraryManagementProject\LibraryManagementProject\main.cpp(774,21): warning C4101: 'stmt': unreferenced local variable
-     Creating library C:\Users\Konrad\source\repos\LibrarySystem\LibraryManagementProject\x64\Release\LibraryManagementProject.lib and object C:\Users\Konrad\source\repos\LibrarySystem\LibraryManagementProject\x64\Release\LibraryManagementProject.exp
+﻿     Creating library C:\Users\Konrad\source\repos\LibrarySystem\LibraryManagementProject\x64\Release\LibraryManagementProject.lib and object C:\Users\Konrad\source\repos\LibrarySystem\LibraryManagementProject\x64\Release\LibraryManagementProject.exp
   Generating code
-  1 of 885 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
+  5 of 934 functions ( 0.5%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    2 functions had inline decision re-evaluated but remain unchanged
+    21 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 mysqlcppconn-static.lib(mysql_driver.obj) : warning LNK4099: PDB '' was not found with 'mysqlcppconn-static.lib(mysql_driver.obj)' or at ''; linking object as if no debug info
 mysqlcppconn-static.lib(mysql_connection.obj) : warning LNK4099: PDB '' was not found with 'mysqlcppconn-static.lib(mysql_connection.obj)' or at ''; linking object as if no debug info

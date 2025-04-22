@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
+#include <fstream>
 #include <regex>
 #include "mysql_connection.h"
 #include <cppconn/driver.h>
@@ -512,6 +513,23 @@ public:
         cin.ignore(); // Clear leftover newline if needed
         getline(cin, currentUser.name);
 
+        char UserInput;
+        cout << "Do you want to save the results to a text file? (y/n): ";
+        cin >> UserInput;
+        cin.ignore(); // Clear leftover newline if needed
+
+        // Open the file for writing if the user chooses 'y'
+        ofstream File;
+        if (UserInput == 'y' || UserInput == 'Y') {
+            File.open("User_Search_Results.txt");
+            if (File.is_open()) {
+                File << left << setw(6) << "ID"
+                    << left << setw(25) << "Name"
+                    << left << setw(30) << "Email"
+                    << left << setw(15) << "Phone" << endl;
+            }
+        }
+
         try {
             sql::PreparedStatement* pstmt = con->prepareStatement(
                 "SELECT * FROM users WHERE name LIKE ?");
@@ -525,19 +543,45 @@ public:
                     << setw(25) << res->getString("name")
                     << setw(30) << res->getString("email")
                     << setw(15) << res->getString("phone") << endl;
+
+                if (UserInput == 'y' || UserInput == 'Y') {
+                    File << setw(6) << res->getInt("user_id") << " | "
+                        << setw(25) << res->getString("name") << " | "
+                        << setw(30) << res->getString("email") << " | "
+                        << setw(15) << res->getString("phone") << endl;
+                }
+
+
             }
+
             delete res;
             delete pstmt;
         }
         catch (sql::SQLException& e) {
             cerr << "Error searching users: " << e.what() << endl;
         }
+
+
+
     }
     void TitleSearch() {
         BookTitles currentTitle;
         cout << "Enter the Title of the book you are searching for: " << endl;
         cin.ignore(); // Clear leftover newline if needed
         getline(cin, currentTitle.title);
+
+        char UserInput;
+        cout << "Do you want to save the results to a text file? (y/n): ";
+        cin >> UserInput;
+        cin.ignore(); // Clear leftover newline if needed
+
+        ofstream File;
+        if (UserInput == 'y' || UserInput == 'Y') {
+            File.open("Title_Search_Results.txt");
+            if (File.is_open()) {
+                File << left << setw(6) << "ID" << left << setw(52) << "Title" << left << setw(33) << "Author" << left << setw(8) << "Year" << left << setw(16) << "Genre" << endl;
+            }
+        }
 
         try {
             sql::PreparedStatement* pstmt = con->prepareStatement(
@@ -553,6 +597,15 @@ public:
                     << setw(30) << res->getString("author") << " | "
                     << setw(4) << res->getInt("published_year") << " | "
                     << setw(15) << res->getString("genre") << endl;
+
+                if (UserInput == 'y' || UserInput == 'Y') {
+                    File << setw(5) << res->getInt("book_title_id") << " | "
+                        << setw(50) << res->getString("title") << " | "
+                        << setw(30) << res->getString("author") << " | "
+                        << setw(4) << res->getInt("published_year") << " | "
+                        << setw(15) << res->getString("genre") << endl;
+                }
+
             }
             delete res;
             delete pstmt;
