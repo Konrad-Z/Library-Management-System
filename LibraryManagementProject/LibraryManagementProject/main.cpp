@@ -58,6 +58,7 @@ int TypeCheck() {
     return choice;
 }
 
+// Function for getting and validating the date
 string GetDate(string question) {
     string date;
 
@@ -76,8 +77,9 @@ string GetDate(string question) {
     return date;
 }
 
+// Function for getting and validating the email
 string ValidateEmail() {
-    regex emailPattern(R"((\w+)(\.|\_)?(\w*)@(\w+)(\.(\w+))+)");
+    regex emailPattern(R"((\w+)(\.|\_)?(\w*)@(\w+)(\.(\w+))+)"); // email format using regex library
     /*
         (\w+) Word Characters
         (\.|\_)? Special characters like a .
@@ -89,12 +91,12 @@ string ValidateEmail() {
     */
     string Email;
 
-    while (true) {
+    while (true) { // Loops if the user enters it wrong
         cout << "Enter your email: ";
-        getline(cin, Email); // Read the full line for email input
+        getline(cin, Email); // Gets the users input
 
         if (!regex_match(Email, emailPattern)) {
-            cout << "Invalid EMAIL Format, Use XXXXX@XXXX.XXXX" << endl;
+            cout << "Invalid EMAIL Format, Use XXXXX@XXXX.XXXX" << endl; // Error message
             continue;
         }
         break;
@@ -103,7 +105,7 @@ string ValidateEmail() {
 }
 
 string ValidatePhone() {
-    regex phonePattern(R"(^(\+44|0)7\d{9}$|^(\+44|0)7\d{3}[\s\-]?\d{3}[\s\-]?\d{3}$)");
+    regex phonePattern(R"(^(\+44|0)7\d{9}$|^(\+44|0)7\d{3}[\s\-]?\d{3}[\s\-]?\d{3}$)"); // Phone number format using regex library 
     /*
         ^ Start of the string
         $ End of the string
@@ -120,10 +122,10 @@ string ValidatePhone() {
 
     while (true) {
         cout << "Enter your Phone Number: ";
-        getline(cin, phone); // Read the full line for phone input
+        getline(cin, phone); // Gets the phone number from the user
 
         if (!regex_match(phone, phonePattern)) {
-            cout << "Invalid Phone Format, use 07XX..." << endl;
+            cout << "Invalid Phone Format, use 07XX..." << endl; // Error message
             continue;
         }
         break;
@@ -131,20 +133,20 @@ string ValidatePhone() {
     return phone;
 }
 
-class Titles {
+class Titles { // Titles class
 private:
-    sql::Connection* con;
+    sql::Connection* con; // Database connection
 
 public:
-    Titles(sql::Connection* connection) : con(connection) {}
+    Titles(sql::Connection* connection) : con(connection) {} // Constructor which passes the database connection into the class, required part of c++ connector
 
-    void ViewTitles() {
+    void ViewTitles() { // View titles method
         try {
-            sql::Statement* stmt = con->createStatement();
+            sql::Statement* stmt = con->createStatement(); // Creates SQL Statements to execute
             sql::ResultSet* res = stmt->executeQuery("SELECT * FROM booktitles");
 
-            cout << left << setw(6) << "ID" << left << setw(52) << "Title" << left << setw(33) << "Author" << left << setw(8) << "Year" << left << setw(16) << "Genre" << endl;
-            while (res->next()) {
+            cout << left << setw(6) << "ID" << left << setw(52) << "Title" << left << setw(33) << "Author" << left << setw(8) << "Year" << left << setw(16) << "Genre" << endl; // Displaying titles
+            while (res->next()) { // Basically a for loop, If there is another result in the set jump to the next one
                 cout << setw (5) << res->getInt("book_title_id") <<  " | " 
                     << setw(50) << res->getString("title") << " | "
                     << setw(30) << res->getString("author") << " | "
@@ -152,22 +154,22 @@ public:
                     << setw(15) << res->getString("genre") << endl;
             }
 
-            // Cleaning Up resources, Frees up memory
+            // Deleting unneeded resources, good coding practice
             delete res;
             delete stmt;
         }
-        catch (sql::SQLException& e) {
+        catch (sql::SQLException& e) { // Error class part of c++ connector, it catches an error when something goes wrong when interacting with the database
             cerr << "Error viewing book titles: " << e.what() << endl;
         }
     }
 
-    void AddTitle() {
+    void AddTitle() { // Adding a title to the database method
         BookTitles currentTitle; // Creating the instance of the struct
         cout << "Enter The Title of the book: " << endl;
-        cin.ignore(); // Clear leftover newline if needed
+        cin.ignore(); // Clears the input just incase, I previously had some errors taking in user input without this.
         getline(cin, currentTitle.title);
 
-        cout << "Enter The author of the book: " << endl;
+        cout << "Enter The author of the book: " << endl; // Getting user inputs
         getline(cin, currentTitle.author);
 
         cout << "What year was the book published: (YYYY)" << endl;
@@ -177,30 +179,30 @@ public:
         cin.ignore(); // Clear newline after TypeCheck if it uses cin
         getline(cin, currentTitle.genre);
         
-        try {
+        try { // Try catch statement for validation
             sql::PreparedStatement* pstmt = con->prepareStatement(
-                "INSERT INTO booktitles (title, author, published_year, genre) VALUES (?, ?, ?, ?)");
-            pstmt->setString(1, currentTitle.title);
+                "INSERT INTO booktitles (title, author, published_year, genre) VALUES (?, ?, ?, ?)");  // SQL statement inserting into database
+            pstmt->setString(1, currentTitle.title); // Sets the string in the prepared statement
             pstmt->setString(2, currentTitle.author);
             pstmt->setInt(3, currentTitle.published_year);
             pstmt->setString(4, currentTitle.genre);
-            pstmt->execute();
+            pstmt->execute();   // Executes the SQL statement
             delete pstmt;
             cout << "Book title added successfully.\n";
         }
-        catch (sql::SQLException& e) {
-            cerr << "Error adding book title: " << e.what() << endl;
+        catch (sql::SQLException& e) { // Error class part of c++ connector, it catches an error when something goes wrong when interacting with the database
+            cerr << "Error adding book title: " << e.what() << endl; // Output stream specifically for error messages
         }
     }
 
-    void UpdateTitle() {
+    void UpdateTitle() { // Updating title method in date base
         BookTitles currentTitle;
         
-        cout << "Enter The ID of the book you would like to edit: " << endl;
+        cout << "Enter The ID of the book you would like to edit: " << endl; // Gets the ID of the title you would like to edit
         cin.ignore(); // Clear leftover newline if needed
         cin >> currentTitle.book_title_id;
 
-        cout << endl;
+        cout << endl;   // New information
         cout << "New details of the book" << endl;
         cout << "-----------------------" << endl;
         cout << "Enter The Title of the book: " << endl;
@@ -219,7 +221,7 @@ public:
 
         try {
             sql::PreparedStatement* pstmt = con->prepareStatement(
-                "UPDATE booktitles SET title = ?, author = ?, published_year = ?, genre = ? WHERE book_title_id = ?");
+                "UPDATE booktitles SET title = ?, author = ?, published_year = ?, genre = ? WHERE book_title_id = ?"); // SQL statement Updating details where ID matches
             pstmt->setString(1, currentTitle.title);
             pstmt->setString(2, currentTitle.author);
             pstmt->setInt(3, currentTitle.published_year);
@@ -232,17 +234,15 @@ public:
         catch (sql::SQLException& e) {
             cerr << "Error editing book title: " << e.what() << endl;
         }
-
     }
-
-    void DeleteTitle() {
+    void DeleteTitle() { // Method for deleting a title
         BookTitles currentTitle;
-        cout << "Enter Book Title ID to delete";
+        cout << "Enter Book Title ID to delete"; // Asks the user for which ID to delete
         currentTitle.book_title_id = TypeCheck();
 
         try {
             sql::PreparedStatement* pstmt = con->prepareStatement(
-                "DELETE FROM booktitles WHERE book_title_id = ?");
+                "DELETE FROM booktitles WHERE book_title_id = ?"); // Deletes the specific ID book title
             pstmt->setInt(1, currentTitle.book_title_id);
             pstmt->execute();
             delete pstmt;
@@ -255,18 +255,18 @@ public:
 
 };
 
-class Users {
+class Users { // Users class, contains methods to deal with any user related queries 
 private:
-    sql::Connection* con;
+    sql::Connection* con; // Database connection
 public:
-    Users(sql::Connection* connection) : con(connection) {}
+    Users(sql::Connection* connection) : con(connection) {} // Constructor for the database connection
 
-    void ViewUsers() {
+    void ViewUsers() { // Method for displaying all users
         try {
             sql::Statement* stmt = con->createStatement();
-            sql::ResultSet* res = stmt->executeQuery("SELECT * FROM users");
+            sql::ResultSet* res = stmt->executeQuery("SELECT * FROM users"); // SQL statement selecting all from users
 
-            cout << left << setw(6) << "ID" << setw(25) << "Name" << setw(30) << "Email" << setw(15) << "Phone" << endl;
+            cout << left << setw(6) << "ID" << setw(25) << "Name" << setw(30) << "Email" << setw(15) << "Phone" << endl; // SetW sets the width of each column, good for outputs
             while (res->next()) {
                 cout << left << setw(6) << res->getInt("user_id")
                     << setw(25) << res->getString("name")
@@ -277,14 +277,14 @@ public:
             delete res;
             delete stmt;
         }
-        catch (sql::SQLException& e) {
+        catch (sql::SQLException& e) { // Error Messages
             cerr << "Error viewing users: " << e.what() << endl;
         }
     }
-    void AddUser() {
-        LibraryUsers currentUser; // Creating the instance of the struct
+    void AddUser() { // Method for adding users
+        LibraryUsers currentUser; // Creating the instance of the struct, which is then applied to the database
         cout << "Enter the full name of the user: " << endl;
-        cin.ignore(); // Clear leftover newline if needed
+        cin.ignore(); // Needed, caused me errors grabing user input
         getline(cin, currentUser.name);
 
         currentUser.email = ValidateEmail(); // Gets and validates users email
@@ -293,11 +293,11 @@ public:
 
         try {
             sql::PreparedStatement* pstmt = con->prepareStatement(
-                "INSERT INTO users (name, email, phone) VALUES (?, ?, ?)");
+                "INSERT INTO users (name, email, phone) VALUES (?, ?, ?)"); // SQL statement
             pstmt->setString(1, currentUser.name);
             pstmt->setString(2, currentUser.email);
             pstmt->setString(3, currentUser.phone);
-            pstmt->execute();
+            pstmt->execute(); // Executes
             delete pstmt;
             cout << "User added successfully.\n";
         }
@@ -305,13 +305,13 @@ public:
             cerr << "Error adding user: " << e.what() << endl;
         }
     }
-    void UpdateUser() {
+    void UpdateUser() { // Method for updating user data
         LibraryUsers currentUser;
         cout << "Enter The ID of the User you would like to edit: " << endl;
-        cin.ignore(); // Clear leftover newline if needed
+        cin.ignore(); // Required, caused me errors grabing user input
         cin >> currentUser.user_id;
         cout << endl;
-        cout << "New details of the user" << endl;
+        cout << "New details of the user" << endl; // New deta to be updated
         cout << "-----------------------" << endl;
         cout << "Enter the full name of the user: " << endl;
         cin.ignore(); // Clear leftover newline if needed
@@ -323,7 +323,7 @@ public:
 
         try {
             sql::PreparedStatement* pstmt = con->prepareStatement(
-                "UPDATE users SET name = ?, email = ?, phone = ? WHERE user_id = ?");
+                "UPDATE users SET name = ?, email = ?, phone = ? WHERE user_id = ?"); // SQL satement
             pstmt->setString(1, currentUser.name);
             pstmt->setString(2, currentUser.email);
             pstmt->setString(3, currentUser.phone);
@@ -338,7 +338,7 @@ public:
 
     }
 
-    void DeleteUser() {
+    void DeleteUser() { // Deletes user method based on ID
         LibraryUsers currentUser;
         cout << "Enter User ID to delete";
         currentUser.user_id = TypeCheck();
@@ -357,7 +357,7 @@ public:
     }
 };
 
-class copies {
+class copies { // Copies Class
 private:
     sql::Connection* con;
 public:
