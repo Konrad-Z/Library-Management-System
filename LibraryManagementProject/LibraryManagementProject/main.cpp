@@ -76,6 +76,25 @@ string GetDate(string question) {
     return date;
 }
 
+string ValidateEmail() {
+    regex emailPattern(R"((\w+)(\.|\_)?(\w*)@(\w+)(\.(\w+))+)");
+
+    string Email;
+
+    while (true) {
+        cout << "Enter your email" << endl;
+        cin.ignore(); // Clear leftover newline if needed
+        getline(cin, Email);
+
+        if (!regex_match(Email, emailPattern)) {
+            cout << "Invalid EMAIL Format, Use XXXXX@XXXX.XXXX" << endl;
+            continue;
+        }
+        break;
+    }
+    return Email;
+}
+
 class Titles {
 private:
     sql::Connection* con;
