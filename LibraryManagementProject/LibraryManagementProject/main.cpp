@@ -78,13 +78,20 @@ string GetDate(string question) {
 
 string ValidateEmail() {
     regex emailPattern(R"((\w+)(\.|\_)?(\w*)@(\w+)(\.(\w+))+)");
+    /*
+        (\w+) Word Characters
+        (\.|\_)? Special characters like a .
+        (\w*) You cant have anymore word characters
+        @ Seperates the domain
+        (\w+)Matches the domain
+        \.(\w+))
 
+    */
     string Email;
 
     while (true) {
-        cout << "Enter your email" << endl;
-        cin.ignore(); // Clear leftover newline if needed
-        getline(cin, Email);
+        cout << "Enter your email: ";
+        getline(cin, Email); // Read the full line for email input
 
         if (!regex_match(Email, emailPattern)) {
             cout << "Invalid EMAIL Format, Use XXXXX@XXXX.XXXX" << endl;
@@ -93,6 +100,35 @@ string ValidateEmail() {
         break;
     }
     return Email;
+}
+
+string ValidatePhone() {
+    regex phonePattern(R"(^(\+44|0)7\d{9}$|^(\+44|0)7\d{3}[\s\-]?\d{3}[\s\-]?\d{3}$)");
+    /*
+        ^ Start of the string
+        $ End of the string
+        (\+44|0) UK Country code | Means or 
+        7\d{9} Number starting with 7 with 9 digits
+
+        |^(\+44|0)7\d{3}[\s\-]?\d{3}[\s\-]?\d{3} Optional spaces and dashes
+            ^(\+44|0) dialing code
+            7, 7 starting digits
+            \d{3}, 3 digitls 
+            [\s\-]? optional characters due to the question mark
+    */      
+    string phone;
+
+    while (true) {
+        cout << "Enter your Phone Number: ";
+        getline(cin, phone); // Read the full line for phone input
+
+        if (!regex_match(phone, phonePattern)) {
+            cout << "Invalid Phone Format, use 07XX..." << endl;
+            continue;
+        }
+        break;
+    }
+    return phone;
 }
 
 class Titles {
@@ -251,12 +287,9 @@ public:
         cin.ignore(); // Clear leftover newline if needed
         getline(cin, currentUser.name);
 
-        cout << "Enter the email of the user: " << endl;
-        getline(cin, currentUser.email);
+        currentUser.email = ValidateEmail(); // Gets and validates users email
 
-        cout << "Enter the Phone number of the user: " << endl;
-        cin.ignore(); // Clear leftover newline if needed
-        getline(cin, currentUser.phone);
+        currentUser.phone = ValidatePhone(); // Gets and validates user's phoneNumber
 
         try {
             sql::PreparedStatement* pstmt = con->prepareStatement(
@@ -284,12 +317,9 @@ public:
         cin.ignore(); // Clear leftover newline if needed
         getline(cin, currentUser.name);
 
-        cout << "Enter the email of the user: " << endl;
-        getline(cin, currentUser.email);
+        currentUser.email = ValidateEmail(); // Gets and validates users email
 
-        cout << "Enter the Phone number of the user: " << endl;
-        cin.ignore(); // Clear leftover newline if needed
-        getline(cin, currentUser.phone);
+        currentUser.phone = ValidatePhone(); // Gets and validates user's phoneNumber
 
         try {
             sql::PreparedStatement* pstmt = con->prepareStatement(
