@@ -16,7 +16,7 @@
 using namespace std;
 
 
-// Structs For data storage, Temporary used for holding data whilst accessing the database etc
+// Structs used for data storage which is then applied to the database
 
 struct LibraryUsers {
     int user_id;
@@ -117,6 +117,7 @@ string ValidatePhone() {
             7, 7 starting digits
             \d{3}, 3 digitls 
             [\s\-]? optional characters due to the question mark
+            This was tricky to understand
     */      
     string phone;
 
@@ -599,10 +600,7 @@ public:
                         << setw(30) << res->getString("email") << " | "
                         << setw(15) << res->getString("phone") << endl;
                 }
-
-
             }
-
             delete res;
             delete pstmt;
         }
@@ -713,7 +711,7 @@ void MainMenu(sql::Connection* con) {
         UserInput = TypeCheck(); // Validates the users input as a number
 
         switch (UserInput) { // Condition to check what the user entered
-        case 0: { // Manage Users
+        case 0: { 
             int userChoice;
             do { // 2nd do while to allow the user to retur to main menu
                 cout << "\nManage Users" << endl;
